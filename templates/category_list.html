@@ -1,0 +1,104 @@
+{% extends 'flatpages/default.html' %}
+
+{% load custom_filters %}
+{% load custom_tags %}
+
+{% block title %}
+News
+{% endblock title %}
+
+{% block content %}
+
+   {% if is_not_subscriber %}
+        <p class="tex_center"><a href="{% url 'subscribe' postCategory.id %}" class="btn btn-secondary btn-sm">Подписаться</a></p>
+
+   {% else %}
+        <p class="text-center"><a href="{% url 'unsubscribe' postCategory.id %}" class="btn btn-secondary btn-sm">Отписаться</a></p>
+   {% endif %}
+
+
+
+
+   <h1>ВСЕ НОВОСТИ НА СЕГОДНЯ</h1>
+   <h3> {{ next_sale|default_if_none:"Свежие новости каждый день!" }} </h3>
+   <h3>{{ time_now|date:'d M Y' }}</h3>
+
+
+   <tr>
+      <h2>Число статей: {{ postCategory_news_list|length  }} </h2>
+   </tr>
+
+   {# Добавляем форму, которая объединяет набор полей и будут отправляться в запросе #}
+   <form action="" method="get">
+       {# Переменная, которую мы передали через контекст, может сгенерировать нам форму с полями #}
+       {{ filterset.form.as_p }}
+       {# Добавим кнопку отправки данных формы #}
+       <input type="submit" value="Найти" />
+   </form>
+
+   <hr>
+
+   {% if postCategory_news_list %}
+       <table>
+           <tr>
+               <td><h2><p style="text-align: center;">Название статьи&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+               </p></h2></td>
+               <td><h2><p style="text-align: center;">Автор&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+               </p></h2></td>
+               <td><h2><p style="text-align: center;"> Текст статьи&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </p></h2></td>
+               <td><h2><p style="text-align: center;"> Категория статьи&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </p></h2></td>
+               <td><h2><p style="text-align: center;"> Дата публикации</p></h2></td>
+           </tr>
+
+            {% for Post in postCategory_news_list %}
+
+            <tr>
+              <td>{{ Post.title|censor }}</td>
+              <td>{{ Post.author }}</td>
+              <td>{{ Post.text|truncatechars:20|censor }}</td>
+
+              <td>
+                  {% for postCategory in Post.postCategory.all %}
+                        <a href="{% url 'postCategory_list' postCategory.id %}">{{ postCategory }}</a>
+                  {% endfor %}
+              </td>
+              <td>{{ Post.dateCreation|date:'h m d M Y' }}</td>
+
+            </tr>
+            {% endfor %}
+
+       </table>
+
+   {% else %}
+       <h2>Статей нет!</h2>
+   {% endif %}
+
+   {% if page_obj.has_previous %}
+       <a href="?page=1">1</a>
+
+       {% if page_obj.previous_page_number != 1 %}
+
+           ...
+
+           <a href="?page={{ page_obj.previous_page_number }}">{{ page_obj.previous_page_number }}</a>
+       {% endif %}
+   {% endif %}
+
+   {# Информация о текущей странице #}
+   {{ page_obj.number }}
+
+   {# Информация о следующих страницах #}
+   {% if page_obj.has_next %}
+
+       <a href="?page={{ page_obj.next_page_number }}">{{ page_obj.next_page_number }}</a>
+       {% if paginator.num_pages != page_obj.next_page_number %}
+
+           ...
+
+           <a href="?page={{ page_obj.paginator.num_pages }}">{{ page_obj.paginator.num_pages }}</a>
+
+
+       {% endif %}
+   {% endif %}
+
+{% endblock content %}
